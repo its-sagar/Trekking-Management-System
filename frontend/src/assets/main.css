@@ -1,0 +1,246 @@
+/* src/assets/main.css — Trekify Global Design System */
+
+/* ── Trekify Precision Design Tokens ──────────────────────────────────── */
+:root {
+  --sp-primary:           #012d1d;
+  --sp-primary-container: #1b4332;
+  --sp-primary-light:     #c1ecd4;
+  --sp-secondary:         #924c00;
+  --sp-secondary-light:   #FFE5D9;
+  --sp-bg:                #f8f9fa;
+  --sp-surface:           #ffffff;
+  --sp-border:            #E9ECEF;
+  --sp-text:              #212529;
+  --sp-muted:             #6C757D;
+  --sp-success-bg:        #D8E2DC;
+  --sp-error:             #ba1a1a;
+  --sp-error-bg:          #ffdad6;
+  --sp-shadow:            0 4px 6px -1px rgba(27,67,50,.05), 0 2px 4px -1px rgba(27,67,50,.03);
+  --sp-shadow-lg:         0 10px 15px -3px rgba(27,67,50,.08), 0 4px 6px -4px rgba(27,67,50,.04);
+  --sp-radius:            0.75rem;
+  --sp-radius-sm:         0.5rem;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--sp-bg); color: var(--sp-text); }
+h1,h2,h3,h4,h5,h6,.font-heading { font-family: 'Geist', sans-serif; }
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+.btn-sp-primary {
+  background: var(--sp-primary); color: #fff; border: none;
+  border-radius: var(--sp-radius-sm); font-family: 'Geist', sans-serif;
+  font-weight: 600; font-size: 0.875rem; letter-spacing: 0.02em;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.btn-sp-primary:hover { background: var(--sp-primary-container); color: #fff; }
+.btn-sp-primary:active { transform: scale(.98); color: #fff; }
+.btn-sp-cta {
+  background: var(--sp-secondary); color: #fff; border: none;
+  border-radius: var(--sp-radius-sm); font-family: 'Geist', sans-serif;
+  font-weight: 600; font-size: 0.875rem;
+  transition: background 150ms ease;
+}
+.btn-sp-cta:hover { background: #7a3f00; color: #fff; }
+.btn-sp-ghost {
+  background: transparent; color: var(--sp-primary);
+  border: 1px solid var(--sp-border); border-radius: var(--sp-radius-sm);
+  font-family: 'Geist', sans-serif; font-weight: 600; font-size: 0.875rem;
+  transition: all 150ms ease;
+}
+.btn-sp-ghost:hover { border-color: var(--sp-primary); background: var(--sp-primary-light); }
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.sp-card {
+  background: var(--sp-surface); border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius); box-shadow: var(--sp-shadow);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.sp-card:hover { transform: translateY(-2px); box-shadow: var(--sp-shadow-lg); }
+.sp-card-body { padding: 1.25rem; }
+
+/* ── KPI Cards ───────────────────────────────────────────────────────── */
+.kpi-card {
+  background: var(--sp-surface); border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius); padding: 1.25rem;
+  box-shadow: var(--sp-shadow);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--sp-shadow-lg); }
+.kpi-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.kpi-number { font-family: 'Geist', sans-serif; font-size: 2rem; font-weight: 700; color: var(--sp-primary); }
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+.sp-sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 260px;
+  background: var(--sp-surface); border-right: 1px solid var(--sp-border);
+  box-shadow: var(--sp-shadow); z-index: 1040;
+  display: flex; flex-direction: column; padding: 1.25rem;
+  overflow-y: auto;
+}
+.sp-sidebar-logo {
+  width: 40px; height: 40px; background: var(--sp-primary);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff;
+}
+.sp-nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  border-radius: var(--sp-radius-sm); color: var(--sp-muted);
+  text-decoration: none; font-family: 'Geist', sans-serif;
+  font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; border: none; background: none; width: 100%;
+  transition: all 150ms ease;
+}
+.sp-nav-link:hover { background: #f3f4f5; color: var(--sp-primary); }
+.sp-nav-link.active { background: var(--sp-primary-light); color: var(--sp-primary); }
+.sp-nav-link .material-symbols-outlined { font-size: 20px; }
+
+/* ── Main Content ────────────────────────────────────────────────────── */
+.sp-main { margin-left: 260px; min-height: 100vh; padding: 1.5rem 2rem; }
+
+/* ── Forms ───────────────────────────────────────────────────────────── */
+.form-control, .form-select {
+  border: 1px solid var(--sp-border); border-radius: var(--sp-radius-sm);
+  font-size: 0.9rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--sp-primary);
+  box-shadow: 0 0 0 3px rgba(1,45,29,.1);
+  outline: none;
+}
+.form-label { font-family: 'Geist', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--sp-muted); }
+
+/* ── Status Badges ───────────────────────────────────────────────────── */
+.badge-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 9999px;
+  font-family: 'Geist', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.badge-open     { background: var(--sp-success-bg); color: var(--sp-primary); }
+.badge-approved { background: #c1ecd4; color: var(--sp-primary); }
+.badge-pending  { background: var(--sp-secondary-light); color: #7a3f00; }
+.badge-closed   { background: #e9ecef; color: #495057; }
+.badge-completed{ background: var(--sp-primary-light); color: var(--sp-primary); }
+.badge-booked   { background: var(--sp-success-bg); color: var(--sp-primary); }
+.badge-cancelled{ background: var(--sp-error-bg); color: var(--sp-error); }
+.badge-easy     { background: var(--sp-success-bg); color: var(--sp-primary); }
+.badge-moderate { background: var(--sp-secondary-light); color: #7a3f00; }
+.badge-hard     { background: var(--sp-error-bg); color: var(--sp-error); }
+
+/* ── Trek Card ───────────────────────────────────────────────────────── */
+.trek-card-header {
+  height: 160px; border-radius: var(--sp-radius) var(--sp-radius) 0 0;
+  background: linear-gradient(135deg, var(--sp-primary-container), #2d6a4f);
+  display: flex; align-items: center; justify-content: center; position: relative;
+  overflow: hidden;
+}
+.trek-card-img { width: 100%; height: 100%; object-fit: cover; }
+.trek-card-difficulty {
+  position: absolute; top: 10px; right: 10px;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────── */
+.sp-table { font-size: 0.875rem; }
+.sp-table th { font-family: 'Geist', sans-serif; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sp-muted); border-bottom: 2px solid var(--sp-border); }
+.sp-table td { vertical-align: middle; border-color: var(--sp-border); }
+.sp-table tbody tr:hover { background: #f8f9fa; }
+
+/* ── Notification Toast ──────────────────────────────────────────────── */
+.sp-toast-wrap { position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.sp-toast {
+  min-width: 280px; padding: 12px 16px; border-radius: var(--sp-radius-sm);
+  font-size: 0.875rem; display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--sp-shadow-lg); animation: slideIn 0.2s ease;
+}
+.sp-toast-success { background: var(--sp-primary); color: #fff; }
+.sp-toast-error   { background: var(--sp-error); color: #fff; }
+.sp-toast-info    { background: #0d6efd; color: #fff; }
+@keyframes slideIn { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform: translateX(0); } }
+
+/* ── Overlay ─────────────────────────────────────────────────────────── */
+.sp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1030; }
+
+/* ── Loading ─────────────────────────────────────────────────────────── */
+.sp-loading { display: flex; justify-content: center; align-items: center; min-height: 200px; }
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sp-sidebar { transform: translateX(-100%); transition: transform .3s ease; }
+  .sp-sidebar.open { transform: translateX(0); }
+  .sp-main { margin-left: 0; padding: 1rem; }
+  
+  /* Table to Card View */
+  .table-responsive { border: none !important; }
+  .sp-table, .sp-table thead, .sp-table tbody, .sp-table th, .sp-table td, .sp-table tr { display: block; }
+  .sp-table thead tr { position: absolute; top: -9999px; left: -9999px; }
+  .sp-table tr { 
+    background: var(--sp-surface); 
+    border: 1px solid var(--sp-border); 
+    border-radius: var(--sp-radius); 
+    margin-bottom: 1rem; 
+    box-shadow: var(--sp-shadow); 
+    padding: 0.5rem; 
+  }
+  .sp-table td { 
+    border: none; 
+    border-bottom: 1px solid var(--sp-border); 
+    position: relative; 
+    padding-left: 40% !important; 
+    text-align: right; 
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .sp-table td:last-child { border-bottom: 0; }
+  .sp-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: 35%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-family: 'Geist', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--sp-muted);
+  }
+  .sp-table td > div { text-align: right; width: 100%; display: flex; flex-direction: column; align-items: flex-end; }
+  .sp-table td > div.d-flex { flex-direction: row; justify-content: flex-end; }
+  
+  /* Actions Cell Styling */
+  .sp-table td.actions-cell {
+    padding-left: 1rem !important;
+    justify-content: flex-end;
+    background: #f8f9fa;
+    border-radius: 0 0 var(--sp-radius-sm) var(--sp-radius-sm);
+    margin: 0.5rem -0.5rem -0.5rem -0.5rem;
+    padding: 1rem !important;
+  }
+  .sp-table td.actions-cell::before { display: none; }
+  .sp-table td.actions-cell .d-flex { width: 100%; justify-content: flex-end; }
+}
+@media (max-width: 576px) {
+  .kpi-number { font-size: 1.5rem; }
+}
+
+/* ── Page transitions ────────────────────────────────────────────────── */
+.fade-enter-active, .fade-leave-active { transition: opacity .15s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* ── Misc ────────────────────────────────────────────────────────────── */
+.cursor-pointer { cursor: pointer; }
+.text-primary-sp { color: var(--sp-primary) !important; }
+.bg-primary-sp { background-color: var(--sp-primary) !important; }
+.page-title { font-family: 'Geist', sans-serif; font-size: 1.75rem; font-weight: 700; color: var(--sp-primary); }
+.section-label { font-family: 'Geist', sans-serif; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sp-muted); }
+.divider { border: none; border-top: 1px solid var(--sp-border); margin: 0; }
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--sp-primary-light);
+  color: var(--sp-primary); font-family: 'Geist', sans-serif; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 0.875rem;
+}
