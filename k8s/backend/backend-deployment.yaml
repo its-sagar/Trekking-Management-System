@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: tms
+spec:
+  replicas: 1  # Scaled up for high availability
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000 # Matches the tms-backend user UID in your Dockerfile
+        runAsGroup: 1000
+      containers:
+      - name: backend-container
+        image: mesagar/tms-backend:latest # Replace with your image
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tms-secrets
+              key: secret-key
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tms-secrets
+              key: jwt-secret-key
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tms-secrets
+              key: mail-password
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: DB_HOST
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: MYSQL_DB
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tms-secrets
+              key: mysql-password
+        - name: JWT_ACCESS_TOKEN_EXPIRES
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: JWT_ACCESS_TOKEN_EXPIRES
+        - name: SQLALCHEMY_TRACK_MODIFICATIONS
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: SQLALCHEMY_TRACK_MODIFICATIONS
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: CELERY_RESULT_BACKEND
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: REDIS_URL
+        - name: CACHE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: CACHE_TYPE
+        - name: CACHE_REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: CACHE_REDIS_URL
+        - name: CACHE_DEFAULT_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: CACHE_DEFAULT_TIMEOUT
+        - name: MAIL_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: MAIL_SERVER
+        - name: MAIL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: MAIL_PORT
+        - name: MAIL_USE_TLS
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: MAIL_USE_TLS
+        - name: MAIL_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: MAIL_USERNAME
+        - name: MAIL_DEFAULT_SENDER
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: MAIL_DEFAULT_SENDER
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: tms-config
+              key: REDIS_HOST
+        - name: DATABASE_URL
+          value: "mysql://$(DB_USER):$(DB_PASSWORD)@mysql-service:3306/$(DB_NAME)"
+        ports:
+        - containerPort: 5000  # Assumes backend runs on 5000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "200m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
