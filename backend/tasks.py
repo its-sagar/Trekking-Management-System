@@ -145,37 +145,43 @@ def generate_monthly_report():
 
 @celery_app.task(name='tasks.export_booking_csv')
 def export_booking_csv(user_id):
-    from models import Booking
+    from models import Booking  # Deferred import to prevent circular dependency issues
 
-    bookings = Booking.query.filter_by(user_id=user_id).all()
+    # Open the Flask application context so SQLAlchemy knows how to connect to the DB
+    with flask_app.app_context():
+        try:
+            bookings = Booking.query.filter_by(user_id=user_id).all()
 
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=[
-        'Booking ID', 'User ID', 'Trek Name', 'Location',
-        'Difficulty', 'Booking Status', 'Booking Date',
-        'Start Date', 'End Date', 'Payment Status',
-    ])
-    writer.writeheader()
-    for b in bookings:
-        writer.writerow({
-            'Booking ID': b.id,
-            'User ID': b.user_id,
-            'Trek Name': b.trek.name if b.trek else '',
-            'Location': b.trek.location if b.trek else '',
-            'Difficulty': b.trek.difficulty if b.trek else '',
-            'Booking Status': b.status,
-            'Booking Date': b.booking_date.strftime('%Y-%m-%d'),
-            'Start Date': b.trek.start_date.isoformat() if b.trek and b.trek.start_date else '',
-            'End Date': b.trek.end_date.isoformat() if b.trek and b.trek.end_date else '',
-            'Payment Status': b.payment_status,
-        })
+            output = io.StringIO()
+            writer = csv.DictWriter(output, fieldnames=[
+                'Booking ID', 'User ID', 'Trek Name', 'Location',
+                'Difficulty', 'Booking Status', 'Booking Date',
+                'Start Date', 'End Date', 'Payment Status',
+            ])
+            writer.writeheader()
+            
+            for b in bookings:
+                writer.writerow({
+                    'Booking ID': b.id,
+                    'User ID': b.user_id,
+                    'Trek Name': b.trek.name if b.trek else '',
+                    'Location': b.trek.location if b.trek else '',
+                    'Difficulty': b.trek.difficulty if b.trek else '',
+                    'Booking Status': b.status,
+                    'Booking Date': b.booking_date.strftime('%Y-%m-%d') if b.booking_date else '',
+                    'Start Date': b.trek.start_date.isoformat() if b.trek and b.trek.start_date else '',
+                    'End Date': b.trek.end_date.isoformat() if b.trek and b.trek.end_date else '',
+                    'Payment Status': b.payment_status,
+                })
 
-    export_dir = os.path.join(os.path.dirname(__file__), 'exports')
-    os.makedirs(export_dir, exist_ok=True)
-    filename = f'bookings_{user_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
-    filepath = os.path.join(export_dir, filename)
-    with open(filepath, 'w', newline='', encoding='utf-8') as f:
-        f.write(output.getvalue())
+            # Retrieve the raw CSV text from the memory buffer
+            csv_data_string = output.getvalue()
+            
+            print(f'[CSV EXPORT SUCCESS] User {user_id}: Prepared {len(bookings)} records in memory.')
+            
+            # Return the text data. Celery saves this string directly into the Redis Result Backend.
+            return csv_data_string
 
-    print(f'[CSV EXPORT] User {user_id}: {len(bookings)} records → {filepath}')
-    return {'status': 'success', 'filename': filename, 'records': len(bookings)}
+        except Exception as e:
+            print(f'[CSV EXPORT ERROR] Failed to generate data for User {user_id}: {str(e)}')
+            raise e

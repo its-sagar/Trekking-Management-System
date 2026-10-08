@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify, send_file, current_app
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.utils import safe_join
 from io import BytesIO
@@ -144,6 +144,7 @@ def export_csv():
     user_id = int(get_jwt_identity())
     try:
         from tasks import export_booking_csv
+        # Send the task directly to the Redis background message queue
         task = export_booking_csv.delay(user_id)
         return jsonify({'message': 'CSV export started', 'task_id': task.id}), 202
     except Exception as e:
@@ -158,75 +159,49 @@ def export_status(task_id):
         task = export_booking_csv.AsyncResult(task_id)
         state = task.state
         if state == 'SUCCESS':
-            return jsonify({'status': 'success', 'result': task.result}), 200
+            return jsonify({
+                'status': 'success', 
+                'task_id': task_id  # Pass back the task_id to allow downloading
+            }), 200
         elif state == 'FAILURE':
-            return jsonify({'status': 'failed'}), 200
+            return jsonify({'status': 'failed', 'reason': str(task.result)}), 200
         else:
             return jsonify({'status': state.lower()}), 200
-    except Exception:
-        return jsonify({'status': 'unknown'}), 200
+    except Exception as e:
+        return jsonify({'status': 'unknown', 'error': str(e)}), 200
 
 
-@user_bp.route('/download-csv/<filename>', methods=['GET'])
+@user_bp.route('/download-csv/<task_id>', methods=['GET'])
 @role_required('user')
-def download_csv(filename):
-    export_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        'exports'
-    )
-    
-    print(f"[CSV DOWNLOAD] export_dir = {export_dir}")
-    print(f"[CSV DOWNLOAD] filename = {filename}")
-
-    # Safely construct the file path
-    filepath = safe_join(export_dir, filename)
-
-    print(f"[CSV DOWNLOAD] filepath = {filepath}")
-
-    # Prevent invalid/path traversal filenames
-    if filepath is None:
-        return jsonify({
-            "error": "Invalid filename"
-        }), 400
-
-    # Check whether file exists
-    if not os.path.isfile(filepath):
-        print(f"[CSV DOWNLOAD] FILE NOT FOUND: {filepath}")
-
-        return jsonify({
-            "error": "CSV file not found"
-        }), 404
-
+def download_csv(task_id):
     try:
-        # Read the entire CSV into memory
-        with open(filepath, 'rb') as csv_file:
-            csv_data = csv_file.read()
+        from tasks import export_booking_csv
+        task = export_booking_csv.AsyncResult(task_id)
 
-        print(
-            f"[CSV DOWNLOAD] CSV loaded into memory: "
-            f"{len(csv_data)} bytes"
-        )
+        if task.state != 'SUCCESS':
+            return jsonify({"error": "CSV file is not ready or export failed"}), 400
 
-        # Delete the server-side CSV
-        os.remove(filepath)
-        print(f"[CSV CLEANUP] Deleted: {filepath}")
-        
-        # Send the CSV from memory to the browser
+        # Pull the CSV text payload straight out of the shared Redis backend cache
+        csv_content_string = task.result
+        if not csv_content_string:
+            return jsonify({"error": "CSV data is empty"}), 404
+
+        # Format string text into standard transferable bytes
+        csv_bytes = csv_content_string.encode('utf-8')
+
+        current_app.logger.info(f"[CSV DOWNLOAD] Loaded {len(csv_bytes)} bytes from Redis for Task: {task_id}")
+
+        # Clean up the data string out of Redis memory store to save storage space
+        task.forget() 
+
+        # Transmit the file securely stream-style down to the browser
         return send_file(
-            BytesIO(csv_data),
+            BytesIO(csv_bytes),
             as_attachment=True,
-            download_name=os.path.basename(filepath),
+            download_name=f"booking_export_{task_id}.csv",
             mimetype='text/csv'
         )
 
-    except PermissionError as e:
-        print(f"[CSV CLEANUP ERROR] Permission denied: {e}")
-        return jsonify({
-            "error": "Could not delete CSV file because it is being used by another process"
-        }), 500
-
     except Exception as e:
-        print(f"[CSV DOWNLOAD ERROR] {e}")
-        return jsonify({
-            "error": "Could not download CSV"
-        }), 500
+        current_app.logger.error(f"[CSV DOWNLOAD ERROR] {str(e)}")
+        return jsonify({"error": "Could not download CSV"}), 500

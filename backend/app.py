@@ -66,11 +66,19 @@ def create_app(config=None):
     basedir = os.path.abspath(os.path.dirname(__file__))
     db_name = os.environ.get('DB_NAME', 'default.db')
 
+    # Fallback default to SQLite if no production database URL is supplied
+    default_sqlite_uri = f'sqlite:///{os.path.join(basedir, db_name)}'
+    database_uri = os.environ.get('DATABASE_URL', default_sqlite_uri)
+
+    # Fix for newer SQLAlchemy versions if using 'mysql://' instead of 'mysql+pymysql://'
+    if database_uri.startswith("mysql://"):
+        database_uri = database_uri.replace("mysql://", "mysql+pymysql://", 1)
+
     app.config.update(
         SECRET_KEY=os.environ.get('SECRET_KEY'),
         JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY'),
         JWT_ACCESS_TOKEN_EXPIRES=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES')),
-        SQLALCHEMY_DATABASE_URI=f'sqlite:///{os.path.join(basedir, db_name)}',
+        SQLALCHEMY_DATABASE_URI=database_uri,
         SQLALCHEMY_TRACK_MODIFICATIONS=os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS') == 'True',
         CELERY_BROKER_URL=os.environ.get('CELERY_BROKER_URL'),
         CELERY_RESULT_BACKEND=os.environ.get('CELERY_RESULT_BACKEND'),
@@ -90,10 +98,10 @@ def create_app(config=None):
     if config:
         app.config.update(config)
 
-    # CORS — allow frontend on port 8081
+    # CORS — allow frontend on port 8080
     CORS(
         app,
-        resources={r"/api/*": {"origins": ["http://localhost:8081", "http://127.0.0.1:8081"]}},
+        resources={r"/api/*": {"origins": ["http://localhost:8080", "http://127.0.0.1:8080"]}},
         supports_credentials=True,
     )
 
@@ -109,11 +117,13 @@ def create_app(config=None):
         cache.init_app(app)
 
     # Register blueprints
+    from routes.health_routes import health_bp
     from routes.auth_routes import auth_bp
     from routes.admin_routes import admin_bp
     from routes.staff_routes import staff_bp
     from routes.user_routes import user_bp
 
+    app.register_blueprint(health_bp, url_prefix='/healthz')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(staff_bp, url_prefix='/api/staff')
