@@ -40,15 +40,14 @@ async function exportCSV() {
 
         if (statusRes.status === "success") {
           clearInterval(interval);
-          const filename = statusRes.result.filename;
 
           // Download CSV
-          const blob = await api.downloadCSV(filename);
+          const blob = await api.downloadCSV(taskId);
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement("a");
 
           link.href = url;
-          link.download = filename;
+          link.download = `booking_export_${taskId}.csv`; 
           document.body.appendChild(link);
           link.click();
           link.remove();
