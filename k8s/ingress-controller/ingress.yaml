@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tms-application-ingress
+  namespace: tms
+  # annotations:
+  #  nginx.ingress.kubernetes.io/rewrite-target: /    # Optional: cleans pathing strings if necessary
+spec:
+  ingressClassName: nginx                             # Assumes you use NGINX Ingress Controller
+  rules:
+  # - host: <YOUR_EC2_PUBLIC_IP>                      # Replace with your actual production domain or local test host
+  - http:
+      paths:
+      
+      # 1. Route all backend API calls to backend-service on port 5000
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 5000
+
+      # 2. Route all regular user traffic to frontend-service on port 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 8080
